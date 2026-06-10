@@ -3,27 +3,32 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: pcsxredux/nugget:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Baixar compilador PS1
+      - name: Compilar Codigo com Toolchain Oficial
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mips-linux-gnu
-      - name: Compilar Codigo
-        run: |
-          # Adicionado suporte para ignorar funções built-in não resolvidas temporariamente
-          mips-linux-gnu-gcc main.c -o PSX.EXE -static -nostdlib -O2 -ffreestanding -w
-      - name: Criar Imagem de CD para Game Stick
-        run: |
+          # Cria o arquivo de regras do PS1
+          echo 'TARGET = baldi_psx' > Makefile
+          echo 'SRCS = main.c' >> Makefile
+          echo 'LIBS = -lgpu -lgte -letc -lapi -lc' >> Makefile
+          echo 'include /nugget/common.mk' >> Makefile
+          
+          # Compila o jogo real de PS1
+          make
+          
+          # Transforma no formato de CD (.bin/.cue) para o seu Game Stick
           echo 'FILE "BaldiPSX.bin" BINARY' > BaldiPSX.cue
           echo '  TRACK 01 MODE1/2352' >> BaldiPSX.cue
           echo '    INDEX 01 00:00:00' >> BaldiPSX.cue
-          cp PSX.EXE BaldiPSX.bin
-      - name: Enviar Jogo Pronto
+          cp baldi_psx.exe BaldiPSX.bin
+      - name: Enviar Jogo Pronto para o Celular
         uses: actions/upload-artifact@v4
         with:
           name: jogo-baldi-gamestick
           path: |
             BaldiPSX.bin
             BaldiPSX.cue
+            
             
