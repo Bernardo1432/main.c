@@ -7,23 +7,18 @@ jobs:
       image: pcsxredux/nugget:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compilar Codigo com Toolchain Oficial
+      - name: Compilar
         run: |
-          # Cria o arquivo de regras do PS1
           echo 'TARGET = baldi_psx' > Makefile
           echo 'SRCS = main.c' >> Makefile
           echo 'LIBS = -lgpu -lgte -letc -lapi -lc' >> Makefile
           echo 'include /nugget/common.mk' >> Makefile
-          
-          # Compila o jogo real de PS1
           make
-          
-          # Transforma no formato de CD (.bin/.cue) para o seu Game Stick
           echo 'FILE "BaldiPSX.bin" BINARY' > BaldiPSX.cue
           echo '  TRACK 01 MODE1/2352' >> BaldiPSX.cue
           echo '    INDEX 01 00:00:00' >> BaldiPSX.cue
           cp baldi_psx.exe BaldiPSX.bin
-      - name: Enviar Jogo Pronto para o Celular
+      - name: Enviar Jogo
         uses: actions/upload-artifact@v4
         with:
           name: jogo-baldi-gamestick
