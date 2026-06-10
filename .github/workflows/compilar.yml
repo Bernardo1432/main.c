@@ -1,1 +1,28 @@
-
+name: Compilar para Game Stick
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar compilador PS1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mips-linux-gnu
+      - name: Compilar Codigo
+        run: |
+          mips-linux-gnu-gcc main.c -o PSX.EXE -static -nostdlib -O2
+      - name: Criar Imagem de CD para Game Stick
+        run: |
+          echo 'FILE "BaldiPSX.bin" BINARY' > BaldiPSX.cue
+          echo '  TRACK 01 MODE1/2352' >> BaldiPSX.cue
+          echo '    INDEX 01 00:00:00' >> BaldiPSX.cue
+          cp PSX.EXE BaldiPSX.bin
+      - name: Enviar Jogo Pronto
+        uses: actions/upload-artifact@v4
+        with:
+          name: jogo-baldi-gamestick
+          path: |
+            BaldiPSX.bin
+            BaldiPSX.cue
+            
